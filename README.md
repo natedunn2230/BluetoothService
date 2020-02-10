@@ -1,5 +1,5 @@
 # BluetoothService
-Bluetooth service for Intellisert Device
+Bluetooth service on device side to accept bluetooth requests
 
 ### Setup
 1. Install necessary packages: `sudo apt-get install bluez bluez-tools python-bluez`
