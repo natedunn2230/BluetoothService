@@ -12,4 +12,4 @@ Bluetooth service on device side to accept bluetooth requests
 ### Creating service for running on startup
 * https://medium.com/@benmorel/creating-a-linux-service-with-systemd-611b5c8b91d6
 
-### Thanks to http://blog.davidvassallo.me/2014/05/11/android-linux-raspberry-pi-bluetooth-communication/
+### An adaptation and extension of bluetooth service from: http://blog.davidvassallo.me/2014/05/11/android-linux-raspberry-pi-bluetooth-communication/
