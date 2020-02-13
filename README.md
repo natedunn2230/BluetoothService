@@ -1,4 +1,7 @@
 # BluetoothService
+### CEG-4981
+### Intellisert
+### Group 14
 Bluetooth service on device side to accept bluetooth requests
 
 ### Setup
