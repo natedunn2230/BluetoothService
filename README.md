@@ -18,19 +18,20 @@ Bluetooth service on device side to accept bluetooth requests
 ```
     [Unit]
     Description=Bluetooth Service for Intellisert
-    After=network.target
+    After=bluetooth.service
     StartLimitIntervalSec=0
-
 
     [Service]
     Type=simple
     Restart=always
+    RestartSec=1
     User={your-user}
     ExecStart=/usr/bin/sudo /usr/bin/python /path/to/BluetoothService/bluetoothServer.py
 
     [Install]
     WantedBy=multi-user.target
 ```
+* Enable service to start on boot: `sudo systemctl enable {your-service-name}`
 * Start up the service: `sudo systemctl start {your-service-name}`
 * Check status of the service: `sudo systemctl status {your-service-name}`
 
