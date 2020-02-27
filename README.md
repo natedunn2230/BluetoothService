@@ -13,6 +13,25 @@ Bluetooth service on device side to accept bluetooth requests
    * If error occurs saying *no device found*, Restart Raspberry Pi device and then issue the command: `sudo systemctl start hciuart`
   
 ### Creating service for running on startup
-* https://medium.com/@benmorel/creating-a-linux-service-with-systemd-611b5c8b91d6
+* Create File under /etc/systemd/system/{your-service-name.service}
+* Enter the following contents:
+```
+    [Unit]
+    Description=Bluetooth Service for Intellisert
+    After=network.target
+    StartLimitIntervalSec=0
+
+
+    [Service]
+    Type=simple
+    Restart=always
+    User={your-user}
+    ExecStart=/usr/bin/sudo /usr/bin/python /path/to/BluetoothService/bluetoothServer.py
+
+    [Install]
+    WantedBy=multi-user.target
+```
+* Start up the service: `sudo systemctl start {your-service-name}`
+* Check status of the service: `sudo systemctl status {your-service-name}`
 
 ### An adaptation and extension of bluetooth service from: http://blog.davidvassallo.me/2014/05/11/android-linux-raspberry-pi-bluetooth-communication/
