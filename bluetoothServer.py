@@ -7,7 +7,7 @@ import json
 
 ## Make device discoverable before setting up a server
 os.system("sudo hciconfig hci0 piscan")
-os.system("sudo hciconfig hci0 name 'Intellisert'") ## change name for each device
+os.system("sudo hciconfig hci0 name 'Intellisert'") ## change name for each device (change hostname of PI as well)
 
 
 def very_connection():
