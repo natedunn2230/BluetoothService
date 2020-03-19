@@ -1,4 +1,5 @@
 import time
+import socket
 import os
 import sys
 import subprocess
@@ -7,10 +8,19 @@ import json
 
 ## Make device discoverable before setting up a server
 os.system("sudo hciconfig hci0 piscan")
-os.system("sudo hciconfig hci0 name 'Intellisert'") ## change name for each device (change hostname of PI as well)
+os.system("sudo hciconfig hci0 name 'nates-intellisert'") ## change name for each device (change hostname of PI as well)
 
 
-def very_connection():
+def get_ip_address():
+	time.sleep(2)
+	ip_sub = subprocess.Popen(['hostname', '-I'], stdout=subprocess.PIPE)
+	ip_sub.wait()
+
+	(out, err) = ip_sub.communicate()
+
+	return out.split()[0]
+
+def verify_connection():
 	iw_sub = subprocess.Popen(["iwconfig"], stdout=subprocess.PIPE)
 
 	iw_sub.wait()
@@ -47,11 +57,7 @@ def modify_wpa_sup(ssid, psk, socket):
 	
 	(out, err) = sub_proc.communicate()
 
-
-        if very_connection() and out == 'OK\n':
-		return True
-	else:
-		return False
+	return verify_connection() and out == 'OK\n'
 
 
 while True:
@@ -74,7 +80,6 @@ while True:
 		print("Accepted connection from", client_info)
 
 		while True:
-						
 			# response back to client will be in format {"success": bool, "msg": string}
 			response = ''
 			
@@ -84,27 +89,46 @@ while True:
 			data = client_sock.recv(1024)
 			if not data:
 				break
-			
-			#data will be in format {"ssid": string, "key": string}
+
+			#data will be in format {"type": "test" | "configure", "payload": {"success": bool, "msg": string}}
 			jsonData  = json.loads(data)
 						
-			# parse data keys
 			try:
-				ssid = jsonData['ssid']
-				password = jsonData['key']
-				
-				## modify the wpa_supplicant file to hold new network changes
-				wpa_result = modify_wpa_sup(ssid, password, client_sock)
-				
-				if not wpa_result:
-                                        print('Could not connect to network')
-					response = '{"success": false, "message": "could not connect to specified network"}'
-				else:
-                                        print('Connected to network')
-					response = '{"success": true, "message": "successfully connected to network"}'
+				serviceType = jsonData['type']
+
+				if serviceType == 'test':
+					# client requests a network test
+					if verify_connection():
+						device_ip = get_ip_address();
+						response = '{"success": true, "message": "network test successful", "device_ip": "' + device_ip + '"}'
+					else:
+						response = '{"success": false, "message": "network test unsuccessful"}'
 					
+					print(response)
+					client_sock.send(response)
+
+				elif serviceType == 'configure':
+					# client requests network configuration
+					ssid = jsonData['payload']['ssid']
+					password = jsonData['payload']['key']
+					
+					## modify the wpa_supplicant file to hold new network changes
+					wpa_result = modify_wpa_sup(ssid, password, client_sock)
+					
+					# determine whether the network configuration was successful or not and notify client
+					if not wpa_result:
+						print('Could not connect to network')
+						response = '{"success": false, "message": "could not connect to specified network"}'
+					else:
+						print('Connected to network')
+						device_ip = get_ip_address()
+						response = '{"success": true, "message": "successfully connected to network" , "device_ip": "' + device_ip + '"}'
+
+				else:
+					print('Unknown service type ' + serviceType)
+
 			except KeyError as e:
-				response = '{"success": false, "message": "parameters ssid and key required"}'
+				response = '{"success": false, "message": {"type": "test|config", "payload": {"ssid": "", "network": ""}}}'
 
 			client_sock.send(response)
 	except BluetoothError as e:
